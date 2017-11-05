@@ -234,8 +234,8 @@ module.exports = (function () {
      * @param source_encoding {string} - optional. Encoding for given string. Default utf8.
      * @returns {string|Buffer}
      */
-    NodeRSA.prototype.encrypt = function (buffer, encoding, source_encoding) {
-        return this.$$encryptKey(false, buffer, encoding, source_encoding);
+    NodeRSA.prototype.encrypt = function (buffer, randomSeeds, encoding, source_encoding) {
+        return this.$$encryptKey(false, buffer, encoding, source_encoding, randomSeeds);
     };
 
     /**
@@ -270,9 +270,9 @@ module.exports = (function () {
     /**
      * Encrypting data method with custom key
      */
-    NodeRSA.prototype.$$encryptKey = function (usePrivate, buffer, encoding, source_encoding) {
+    NodeRSA.prototype.$$encryptKey = function (usePrivate, buffer, encoding, source_encoding, randomSeeds) {
         try {
-            var res = this.keyPair.encrypt(this.$getDataForEncrypt(buffer, source_encoding), usePrivate);
+            var res = this.keyPair.encrypt(this.$getDataForEncrypt(buffer, source_encoding), usePrivate, randomSeeds);
 
             if (encoding == 'buffer' || !encoding) {
                 return res;

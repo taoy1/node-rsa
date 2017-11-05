@@ -5,14 +5,14 @@ module.exports = function (keyPair, options) {
     var pkcs1Scheme = schemes.pkcs1.makeScheme(keyPair, options);
 
     return {
-        encrypt: function (buffer, usePrivate) {
+        encrypt: function (buffer, usePrivate, randomSeedObj) {
             var m, c;
             if (usePrivate) {
                 /* Type 1: zeros padding for private key encrypt */
                 m = new BigInteger(pkcs1Scheme.encPad(buffer, {type: 1}));
                 c = keyPair.$doPrivate(m);
             } else {
-                m = new BigInteger(keyPair.encryptionScheme.encPad(buffer));
+                m = new BigInteger(keyPair.encryptionScheme.encPad(buffer, randomSeedObj));
                 c = keyPair.$doPublic(m);
             }
             return c.toBuffer(keyPair.encryptedDataLength);

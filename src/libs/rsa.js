@@ -214,7 +214,7 @@ module.exports.Key = (function () {
      * @param buffer {Buffer}
      * @returns {Buffer}
      */
-    RSAKey.prototype.encrypt = function (buffer, usePrivate) {
+    RSAKey.prototype.encrypt = function (buffer, usePrivate, randomSeeds) {
         var buffers = [];
         var results = [];
         var bufferSize = buffer.length;
@@ -229,8 +229,23 @@ module.exports.Key = (function () {
             }
         }
 
-        for (var i = 0; i < buffers.length; i++) {
-            results.push(this.encryptEngine.encrypt(buffers[i], usePrivate));
+        if (typeof(randomSeeds) == 'undefined' || randomSeeds.constructor !== Array) {
+            throw new Error("randomSeeds must be an array");
+        }
+
+        if (randomSeeds.length > 0) {
+            if (randomSeeds.length != buffers.length) {
+                throw new Error("Passed in seeds don't match the text.");
+            }
+            for (var i = 0; i < buffers.length; i++) {
+                results.push(this.encryptEngine.encrypt(buffers[i], usePrivate, {oaepSeed: randomSeeds[i]}));
+            }
+        } else {
+            for (var i = 0; i < buffers.length; i++) {
+                var randomSeedObj = {};
+                results.push(this.encryptEngine.encrypt(buffers[i], usePrivate, randomSeedObj));
+                randomSeeds.push(randomSeedObj.oaepSeed); // only support oaep for now
+            }
         }
 
         return Buffer.concat(results);

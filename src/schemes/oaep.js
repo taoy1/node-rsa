@@ -72,7 +72,7 @@ module.exports.makeScheme = function (key, options) {
      *
      * https://tools.ietf.org/html/rfc3447#section-7.1.1
      */
-    Scheme.prototype.encPad = function (buffer) {
+    Scheme.prototype.encPad = function (buffer, randomSeedObj) {
         var hash = this.options.encryptionSchemeOptions.hash || DEFAULT_HASH_FUNCTION;
         var mgf = this.options.encryptionSchemeOptions.mgf || module.exports.eme_oaep_mgf1;
         var label = this.options.encryptionSchemeOptions.label || new Buffer(0);
@@ -95,7 +95,19 @@ module.exports.makeScheme = function (key, options) {
         PS[PS.length - 1] = 1;
 
         var DB = Buffer.concat([lHash, PS, buffer]);
-        var seed = crypt.randomBytes(hLen);
+        var seed;
+
+        if (typeof(randomSeedObj.oaepSeed) == 'undefined') {
+            seed = crypt.randomBytes(hLen);
+            randomSeedObj.oaepSeed = new Buffer(seed.length);
+            seed.copy(randomSeedObj.oaepSeed);
+        } else {
+            if (hLen != randomSeedObj.oaepSeed.length) {
+                throw new Error("seed length doesn't match.");
+            }
+            seed = new Buffer(hLen);
+            randomSeedObj.oaepSeed.copy(seed);
+        }
 
         // mask = dbMask
         var mask = mgf(seed, DB.length, hash);
